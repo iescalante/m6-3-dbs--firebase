@@ -1,9 +1,46 @@
-import React, { createContext, useEffect, useState } from 'react';
-
+import React, { createContext, useEffect, useState } from "react";
+import withFirebaseAuth from "react-with-firebase-auth";
+import * as firebase from "firebase";
+import "firebase/auth";
 export const AppContext = createContext(null);
 
-const AppProvider = ({ children }) => {
-  return <AppContext.Provider value={{}}>{children}</AppContext.Provider>;
+var firebaseConfig = {
+  apiKey: "AIzaSyB8pJfdQTGDlAKPwAWmp4Yb_iUfBfr8XwU",
+  authDomain: "user-app-cf1fc.firebaseapp.com",
+  databaseURL: "https://user-app-cf1fc.firebaseio.com",
+  projectId: "user-app-cf1fc",
+  storageBucket: "user-app-cf1fc.appspot.com",
+  messagingSenderId: "625811476980",
+  appId: "1:625811476980:web:2f78a97716d9e80b1929a1",
 };
 
-export default AppProvider;
+const firebaseApp = firebase.initializeApp(firebaseConfig);
+const firebaseAppAuth = firebaseApp.auth();
+const providers = { googleProvider: new firebase.auth.GoogleAuthProvider() };
+
+const AppProvider = ({ children, signInWithGoogle, signOut, user }) => {
+  const [appUser, setAppUser] = useState({});
+
+  const handleSignOut = () => {
+    signOut();
+    setAppUser({});
+  };
+
+  useEffect(() => {
+    if (user) {
+      setAppUser({
+        displayName: user.displayName,
+        email: user.email,
+        photoURL: user.photoURL,
+      });
+    }
+  }, [user]);
+
+  return (
+    <AppContext.Provider value={{ appUser, signInWithGoogle, handleSignOut }}>
+      {children}
+    </AppContext.Provider>
+  );
+};
+
+export default withFirebaseAuth({ providers, firebaseAppAuth })(AppProvider);
